@@ -39,16 +39,3 @@ Thumbs.db
 
 # Misc
 project-structure.txt
-
-# Terraform
-.terraform/
-*.tfstate
-*.tfstate.backup
-crash.log
-
-# Terraform
-infra/infra/.terraform/
-.terraform/
-*.tfstate
-*.tfstate.backup
-crash.log
