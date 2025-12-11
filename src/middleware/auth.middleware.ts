@@ -1,7 +1,21 @@
 import { Request, Response, NextFunction } from "express";
+import { UserRole } from "@prisma/client";
 import jwt from "jsonwebtoken";
 
-export default function authMiddleware(requiredRole: string = "ANY") {
+type AllowedRole = UserRole | "ANY";
+
+interface AccessTokenPayload {
+  sub: string;
+  email: string;
+  role: UserRole;
+  iss: string;
+  aud: string;
+  jti: string;
+  iat: number;
+  exp: number;
+}
+
+export default function authMiddleware(requiredRole: AllowedRole = "ANY") {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
       const authHeader = req.headers.authorization;
@@ -21,14 +35,37 @@ export default function authMiddleware(requiredRole: string = "ANY") {
         throw error;
       }
 
-      const payload: any = jwt.verify(token, secret);
+      let payload: AccessTokenPayload;
 
+      try {
+        payload = jwt.verify(token, secret) as AccessTokenPayload;
+      } catch (jwtError: any) {
+        const error: any = new Error("Invalid or expired access token");
+        error.status = 401;
+        throw error;
+      }
+
+      // Validate issuer and audience
+      if (payload.iss !== "astrygo-auth-service") {
+        const error: any = new Error("Invalid token issuer");
+        error.status = 401;
+        throw error;
+      }
+
+      if (payload.aud !== "astrygo-client") {
+        const error: any = new Error("Invalid token audience");
+        error.status = 401;
+        throw error;
+      }
+
+      // Attach user to request
       (req as any).user = {
         id: payload.sub,
         email: payload.email,
         role: payload.role,
       };
 
+      // Role check
       if (requiredRole !== "ANY" && payload.role !== requiredRole) {
         const error: any = new Error("Forbidden");
         error.status = 403;

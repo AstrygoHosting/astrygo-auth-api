@@ -36,9 +36,8 @@ router.post("/logout", AuthController.logout);
 
 /**
  * INTERNAL / DEVOPS ROUTES
+ * Protected by x-cron-key header (CRON_CLEANUP_KEY)
  */
-
-// Cleanup expired / revoked sessions
 router.post("/internal/cleanup-sessions", cleanupSessionsHandler);
 
 export default router;

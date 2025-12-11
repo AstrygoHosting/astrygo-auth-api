@@ -61,7 +61,7 @@ export class AuthController {
    */
   static async me(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId = req.user?.id;
+      const userId = (req as any).user?.id;
 
       if (!userId) {
         const error: any = new Error("Unauthorized");
@@ -101,7 +101,7 @@ export class AuthController {
    */
   static async logoutAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId = req.user?.id;
+      const userId = (req as any).user?.id;
 
       if (!userId) {
         const error: any = new Error("Unauthorized");
@@ -138,8 +138,8 @@ export class AuthController {
 }
 
 /**
- * Internal cleanup handler
- * For DEV use (no auth check)
+ * Internal cleanup handler (for Cloud Scheduler / Cron)
+ * Requires header: x-cron-key = process.env.CRON_CLEANUP_KEY
  */
 export async function cleanupSessionsHandler(
   req: Request,
@@ -147,7 +147,29 @@ export async function cleanupSessionsHandler(
   next: NextFunction
 ) {
   try {
-    const deleted = await cleanupExpiredSessions();
+    const providedKey =
+      (req.headers["x-cron-key"] as string | undefined) ||
+      (req.headers["x-cron-key".toLowerCase()] as string | undefined);
+
+    const expectedKey = process.env.CRON_CLEANUP_KEY;
+
+    if (!expectedKey) {
+      const error: any = new Error("Server misconfigured: missing CRON_CLEANUP_KEY");
+      error.status = 500;
+      throw error;
+    }
+
+    if (!providedKey || providedKey !== expectedKey) {
+      const error: any = new Error("Unauthorized cleanup request");
+      error.status = 401;
+      throw error;
+    }
+
+    const limitParam = req.query.limit as string | undefined;
+    const limit = limitParam ? parseInt(limitParam, 10) || 500 : 500;
+
+    const deleted = await cleanupExpiredSessions(limit);
+
     return res.json({
       message: "Expired/revoked sessions cleaned up",
       deleted,

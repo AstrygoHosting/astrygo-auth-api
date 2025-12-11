@@ -1,60 +1,29 @@
-\# Astrygo Auth API
-
-
+# Astrygo Auth API
 
 Secure authentication microservice for the Astrygo Hosting platform.  
-
-Built with \*\*Node.js, TypeScript, Express, Prisma, and PostgreSQL\*\*, and deployed on \*\*Google Cloud Run\*\*.
-
-
+Built with **Node.js, TypeScript, Express, Prisma, and PostgreSQL**, and deployed on **Google Cloud Run**.
 
 ---
 
+## Stack
 
-
-\## Stack
-
-
-
-\- \*\*Runtime:\*\* Node.js 20 + TypeScript
-
-\- \*\*Framework:\*\* Express
-
-\- \*\*ORM:\*\* Prisma + PostgreSQL (Cloud SQL)
-
-\- \*\*Auth:\*\* JWT Access \& Refresh tokens with session binding
-
-\- \*\*Security:\*\*
-
-&nbsp; - Hashed refresh tokens
-
-&nbsp; - Token rotation
-
-&nbsp; - Session revocation
-
-&nbsp; - Cleanup job endpoint
-
-\- \*\*Deployment:\*\* Docker + Google Cloud Run
-
-\- \*\*CI/CD:\*\* GitHub Actions
-
-
+- **Runtime:** Node.js 20 + TypeScript
+- **Framework:** Express
+- **ORM:** Prisma + PostgreSQL (Cloud SQL)
+- **Auth:** JWT Access & Refresh tokens with session binding
+- **Security:**
+  - Hashed refresh tokens
+  - Refresh token rotation
+  - Session revocation
+  - Cleanup job endpoint protected by `CRON_CLEANUP_KEY`
+- **Deployment:** Docker + Google Cloud Run
+- **CI/CD:** GitHub Actions
 
 ---
 
+## Local Development
 
-
-\## Local Development
-
-
-
-\### 1. Install dependencies
-
-
+### 1. Install dependencies
 
 ```bash
-
 npm install
-
-
-
