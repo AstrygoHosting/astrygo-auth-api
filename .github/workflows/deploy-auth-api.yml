@@ -1,4 +1,4 @@
-name: Deploy Astrygo Auth API to Cloud Run
+name: Deploy Astrygo Auth API
 
 on:
   push:
@@ -30,10 +30,14 @@ jobs:
       - name: Build TypeScript
         run: npm run build
 
-      - name: Authenticate to Google Cloud
+      # ----------------------------
+      # 🔥 WIF Authentication (ONLY)
+      # ----------------------------
+      - name: Authenticate to Google Cloud (WIF)
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          workload_identity_provider: "projects/566371473637/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider"
+          service_account: "astrygo-github-deployer@astrygo-webhosting.iam.gserviceaccount.com"
 
       - name: Set up gcloud SDK
         uses: google-github-actions/setup-gcloud@v2
