@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  SUPPORT
+  CLIENT
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  isActive     Boolean  @default(true)
+  role         UserRole @default(CLIENT)
+
+  // علاقات
+  sessions        Session[]
+  serviceAccounts ServiceAccount[] @relation("UserServiceAccounts")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ServiceAccount {
+  id            String  @id @default(cuid())
+  name          String
+  keyId         String  @unique // Public Key ID (يُرسل في الـ Header)
+  keySecretHash String // السر مشفّر (hashed) في الداتا بيز
+  description   String?
+
+  // صاحب الحساب (اختياري) – مثلاً يكون Super Admin
+  owner   User?   @relation("UserServiceAccounts", fields: [ownerId], references: [id])
+  ownerId String?
+
+  // صلاحيات الخدمة
+  scopes     String[] // مثل ["auth:read", "billing:write"]
+  allowedIps String[] // مثلاً ["1.2.3.4/32"] لو حبّينا نقيّد IP
+
+  isActive Boolean @default(true)
+
+  sessions Session[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Session {
+  id String @id @default(cuid())
+
+  // إما User أو ServiceAccount (واحد منهم فقط يستخدم في الجلسة)
+  user   User?   @relation(fields: [userId], references: [id])
+  userId String?
+
+  serviceAccount   ServiceAccount? @relation(fields: [serviceAccountId], references: [id])
+  serviceAccountId String?
+
+  refreshToken String  @unique // الـ Refresh Token الحقيقي أو JTI
+  userAgent    String?
+  ipAddress    String?
+
+  expiresAt DateTime
+  revokedAt DateTime?
+
+  createdAt DateTime @default(now())
+}
